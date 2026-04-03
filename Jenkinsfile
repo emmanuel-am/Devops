@@ -43,6 +43,13 @@ node {
             }
 
             println rc
+
+            // 👇 DEBUG IMPORTANTE (AQUI VA)
+            if (isUnix()) {
+                sh "${toolbelt} org list --all"
+            } else {
+                bat "${toolbelt} org list --all"
+            }
 			
             if (isUnix()) {
                 rmsg = sh returnStdout: true, script: "${toolbelt} project deploy start --manifest manifest/package.xml"
