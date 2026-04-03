@@ -28,35 +28,33 @@ node {
             def rmsg
 
             if (isUnix()) {
-                rc = sh returnStatus: true, script: "${toolbelt} org login jwt --client-id ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwt-key-file ${jwt_key_file} --set-default-dev-hub --set-default --instance-url ${SFDC_HOST}"
-            }else{
-                bat "${toolbelt} update"
-                rc = bat returnStatus: true, script: "${toolbelt} org login jwt --client-id ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwt-key-file ${jwt_key_file} --loglevel DEBUG --set-default-dev-hub --set-default --instance-url ${SFDC_HOST}"
-            }
-		
-            if (rc != 0) { 
-                println 'inside rc != 0'
-                error 'hub org authorization failed' 
-            }
-            else{
-                println 'rc == 0'
-            }
+                rmsg = sh returnStdout: true, script: """
+                    export HOME="${WORKSPACE}"
+                    mkdir -p "\$HOME"
 
-            println rc
+                    ${toolbelt} org login jwt \\
+                      --client-id ${CONNECTED_APP_CONSUMER_KEY} \\
+                      --username ${HUB_ORG} \\
+                      --jwt-key-file ${jwt_key_file} \\
+                      --set-default-dev-hub \\
+                      --set-default \\
+                      --instance-url ${SFDC_HOST}
 
-            // 👇 DEBUG IMPORTANTE (AQUI VA)
-            if (isUnix()) {
-                sh "${toolbelt} org list --all"
+                    ${toolbelt} org list --all
+
+                    ${toolbelt} project deploy start \\
+                      --manifest manifest/package.xml
+                """
             } else {
-                bat "${toolbelt} org list --all"
+                bat "${toolbelt} update"
+                rmsg = bat returnStdout: true, script: """
+                    set HOME=%WORKSPACE%
+                    ${toolbelt} org login jwt --client-id ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwt-key-file ${jwt_key_file} --loglevel DEBUG --set-default-dev-hub --set-default --instance-url ${SFDC_HOST}
+                    ${toolbelt} org list --all
+                    ${toolbelt} project deploy start --manifest manifest/package.xml
+                """
             }
-			
-            if (isUnix()) {
-                rmsg = sh returnStdout: true, script: "${toolbelt} project deploy start --manifest manifest/package.xml"
-            }else{
-                rmsg = bat returnStdout: true, script: "${toolbelt} project deploy start --manifest manifest/package.xml"
-            }
-			  
+
             printf rmsg
             println('Hello from a Job DSL script!')
             println(rmsg)
