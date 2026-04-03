@@ -24,7 +24,7 @@ node {
     }
 
     withCredentials([file(credentialsId: JWT_KEY_CRED_ID, variable: 'jwt_key_file')]) {
-        stage('Deploye Code') {
+        stage('Validate Code') {
             def rmsg
 
             if (isUnix()) {
@@ -44,7 +44,7 @@ node {
 
                     ${toolbelt} org list --all
 
-                    ${toolbelt} project deploy start \\
+                    ${toolbelt} project deploy validate \\
                       --manifest manifest/package.xml \\
                       --target-org ${ORG_ALIAS}
                 """
@@ -55,7 +55,7 @@ node {
                     set SF_USE_GENERIC_UNIX_KEYCHAIN=true
                     ${toolbelt} org login jwt --client-id ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwt-key-file ${jwt_key_file} --alias ${ORG_ALIAS} --set-default --set-default-dev-hub --instance-url ${SFDC_HOST}
                     ${toolbelt} org list --all
-                    ${toolbelt} project deploy start --manifest manifest/package.xml --target-org ${ORG_ALIAS}
+                    ${toolbelt} project deploy validate --manifest manifest/package.xml --target-org ${ORG_ALIAS}
                 """
             }
 
